@@ -13,8 +13,15 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, val apiClientSecret: String) {
 
+  private val reg = "^[0-9a-zA-Z_=-]{60,120}$".r
+
+  def isValidTicket(ticket: String): Boolean =
+    reg.findFirstIn(ticket).nonEmpty
 
   def getAppTicket(ticket: String)(implicit ec: ExecutionContext): Future[Either[AppTicketResponse, ErrorCode]] = {
+    if (!isValidTicket(ticket))
+      throw new IllegalArgumentException("invalid ticket")
+
     ws.url(apiBase + "/api/get_token")
       .post(Json.toJson(AppTicketRequest(ticket, apiClientId, apiClientSecret)))
       .map(r => {
