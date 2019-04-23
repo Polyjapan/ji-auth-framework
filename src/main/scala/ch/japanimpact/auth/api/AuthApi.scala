@@ -1,6 +1,6 @@
 package ch.japanimpact.auth.api
 
-import ch.japanimpact.auth.api.AuthApi.AppTicketRequest
+import ch.japanimpact.auth.api.AuthApi.{AppTicketRequest, AppTicketResponse}
 import ch.japanimpact.auth.api.constants.GeneralErrorCodes.{ErrorCode, RequestError}
 import play.api.libs.json.{Format, JsValue, Json}
 import play.api.libs.ws._
@@ -14,14 +14,14 @@ import scala.concurrent.{ExecutionContext, Future}
 class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, val apiClientSecret: String) {
 
 
-  def getAppTicket(ticket: String)(implicit ec: ExecutionContext): Future[Either[AppTicketRequest, ErrorCode]] = {
+  def getAppTicket(ticket: String)(implicit ec: ExecutionContext): Future[Either[AppTicketResponse, ErrorCode]] = {
     ws.url(apiBase + "/api/get_token")
       .post(Json.toJson(AppTicketRequest(ticket, apiClientId, apiClientSecret)))
       .map(r => {
         try {
           if (r.status == 400)
-            Right(Json.fromJson[RequestError](r.body[JsValue]).get.errorCode)
-          else Left(Json.fromJson[AppTicketRequest](r.body[JsValue]).get)
+            Right(r.json.as[RequestError].errorCode)
+          else Left(r.json.as[AppTicketResponse])
         } catch {
           case _ => Right(100)
         }
