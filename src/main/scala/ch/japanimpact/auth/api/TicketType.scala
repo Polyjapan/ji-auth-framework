@@ -1,6 +1,6 @@
-package ch.japanimpact.tools
+package ch.japanimpact.auth.api
 
-import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue}
+import play.api.libs.json._
 
 /**
   * @author Louis Vialar

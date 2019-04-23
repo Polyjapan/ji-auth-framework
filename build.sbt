@@ -9,4 +9,5 @@ publishArtifact in (Compile, packageBin) := true
 
 scalaVersion := "2.12.8"
 
-libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.10"
+libraryDependencies += "com.typesafe.play" %% "play-json" % "2.7.1"
+libraryDependencies += "com.typesafe.play" %% "play-ws" % "2.7.1"
