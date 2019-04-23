@@ -26,6 +26,11 @@ object GeneralErrorCodes {
   val InvalidAppSecret = 103
 
   /**
+    * The captcha is invalid
+    */
+  val InvalidCaptcha = 104
+
+  /**
     * The json returned by the server in case of error
     */
   case class RequestError(errorCode: Int)
