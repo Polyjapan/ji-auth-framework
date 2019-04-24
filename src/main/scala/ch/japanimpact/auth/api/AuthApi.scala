@@ -22,7 +22,7 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
     if (!isValidTicket(ticket))
       throw new IllegalArgumentException("invalid ticket")
 
-    ws.url(apiBase + "/api/get_token")
+    ws.url(apiBase + "/api/get_ticket")
       .post(Json.toJson(AppTicketRequest(ticket, apiClientId, apiClientSecret)))
       .map(r => {
         try {
