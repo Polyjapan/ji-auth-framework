@@ -30,7 +30,9 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
             Right(r.json.as[RequestError].errorCode)
           else Left(r.json.as[AppTicketResponse])
         } catch {
-          case _ => Right(100)
+          case e: Exception =>
+            e.printStackTrace()
+            Right(100)
         }
       })
   }
