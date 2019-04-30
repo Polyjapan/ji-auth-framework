@@ -1,6 +1,7 @@
 package ch.japanimpact.auth.api
 
 import ch.japanimpact.auth.api.AuthApi.{AppTicketRequest, AppTicketResponse}
+import ch.japanimpact.auth.api.constants.GeneralErrorCodes
 import ch.japanimpact.auth.api.constants.GeneralErrorCodes.{ErrorCode, RequestError}
 import play.api.libs.json.{Format, JsValue, Json}
 import play.api.libs.ws._
@@ -27,12 +28,12 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
       .map(r => {
         try {
           if (r.status == 400)
-            Right(r.json.as[RequestError].errorCode)
+            Right(ErrorCode(r.json.as[RequestError].errorCode, "get_ticket"))
           else Left(r.json.as[AppTicketResponse])
         } catch {
           case e: Exception =>
             e.printStackTrace()
-            Right(100)
+            Right(GeneralErrorCodes.UnknownError)
         }
       })
   }
