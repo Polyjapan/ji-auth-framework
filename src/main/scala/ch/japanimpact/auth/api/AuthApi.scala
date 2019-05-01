@@ -19,12 +19,20 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
   def isValidTicket(ticket: String): Boolean =
     reg.findFirstIn(ticket).nonEmpty
 
+  implicit class AuthWSRequest(rq: WSRequest) {
+    def authentified: WSRequest = rq.addHttpHeaders(
+      "X-Client-Id" -> apiClientId,
+      "X-Client-Secret" -> apiClientSecret,
+    )
+  }
+
   def getAppTicket(ticket: String)(implicit ec: ExecutionContext): Future[Either[AppTicketResponse, ErrorCode]] = {
     if (!isValidTicket(ticket))
       throw new IllegalArgumentException("invalid ticket")
 
-    ws.url(apiBase + "/api/get_ticket")
-      .post(Json.toJson(AppTicketRequest(ticket, apiClientId, apiClientSecret)))
+    ws.url(apiBase + "/api/ticket/" + ticket)
+      .authentified
+      .get()
       .map(r => {
         try {
           if (r.status == 400)
