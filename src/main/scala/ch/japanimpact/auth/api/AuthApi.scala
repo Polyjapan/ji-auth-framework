@@ -3,7 +3,7 @@ package ch.japanimpact.auth.api
 import ch.japanimpact.auth.api.AuthApi.{AppTicketRequest, AppTicketResponse}
 import ch.japanimpact.auth.api.constants.GeneralErrorCodes
 import ch.japanimpact.auth.api.constants.GeneralErrorCodes.{ErrorCode, RequestError}
-import play.api.libs.json.{Format, JsValue, Json}
+import play.api.libs.json.{Format, Json}
 import play.api.libs.ws._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -46,7 +46,6 @@ object AuthApi {
   implicit val responseMapper: Format[AppTicketResponse] = Json.format[AppTicketResponse]
 
 
-
   class ApiRequest(val endpoint: String, val method: String)
 
   /**
@@ -65,7 +64,8 @@ object AuthApi {
     * @param userId     the CAS id of user the ticket was generated for
     * @param userEmail  the email of the user the ticket was generated for
     * @param ticketType the type of ticket
+    * @param groups     the set of groups (exposed to the app) the user is part of
     */
-  case class AppTicketResponse(userId: Int, userEmail: String, ticketType: TicketType)
+  case class AppTicketResponse(userId: Int, userEmail: String, ticketType: TicketType, groups: Set[String])
 
 }
