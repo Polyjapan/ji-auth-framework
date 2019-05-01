@@ -15,6 +15,7 @@ object TicketType {
     case "T_DOUBLE_REGISTER" => DoubleRegisterTicket
     case "T_EMAIL_CONFIRM" => EmailConfirmTicket
     case "T_PASSWORD_RESET" => PasswordResetTicket
+    case "T_EXPLICIT_GRANT" => ExplicitGrantTicket
   }
 
   def unapply(ticketType: TicketType): String = ticketType match {
@@ -23,6 +24,7 @@ object TicketType {
     case DoubleRegisterTicket => "T_DOUBLE_REGISTER"
     case EmailConfirmTicket => "T_EMAIL_CONFIRM"
     case PasswordResetTicket => "T_PASSWORD_RESET"
+    case ExplicitGrantTicket => "T_EXPLICIT_GRANT"
   }
 
   /**
@@ -49,6 +51,11 @@ object TicketType {
     * A ticket emitted when the user just reset his password using a previously sent link
     */
   case object PasswordResetTicket extends TicketType
+
+  /**
+    * A ticket emitted when the user is sent to an app using the explicit mode
+    */
+  case object ExplicitGrantTicket extends TicketType
 
   implicit val sourceFormat: Format[TicketType] = new Format[TicketType] {
     override def reads(json: JsValue): JsResult[TicketType] = json match {
