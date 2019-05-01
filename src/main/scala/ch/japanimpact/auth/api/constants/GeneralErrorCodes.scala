@@ -11,7 +11,7 @@ object GeneralErrorCodes {
   /**
     * The json returned by the server in case of error
     */
-  class RequestError(val errorCode: Int) extends AnyVal
+  class RequestError(val errorCode: Int)
 
   private object RequestError {
     def apply(errorCode: Int): RequestError = new RequestError(errorCode)
