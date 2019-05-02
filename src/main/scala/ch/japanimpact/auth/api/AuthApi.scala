@@ -35,13 +35,47 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
       .get()
       .map(r => {
         try {
-          if (r.status == 400)
+          if (r.status != 200)
             Right(ErrorCode(r.json.as[RequestError].errorCode, "get_ticket"))
           else Left(r.json.as[AppTicketResponse])
         } catch {
           case e: Exception =>
             e.printStackTrace()
             Right(GeneralErrorCodes.UnknownError)
+        }
+      })
+  }
+
+  def addUserToGroup(group: String, userId: Int)(implicit ec: ExecutionContext): Future[Option[ErrorCode]] = {
+    ws.url(apiBase + "/api/groups/" + group + "/members")
+      .authentified
+      .post(Json.toJson("userId" -> userId))
+      .map(r => {
+        try {
+          if (r.status == 400)
+            Some(ErrorCode(r.json.as[RequestError].errorCode, "group_add_user"))
+          else None // No error, done
+        } catch {
+          case e: Exception =>
+            e.printStackTrace()
+            Some(GeneralErrorCodes.UnknownError)
+        }
+      })
+  }
+
+  def removeUserFromGroup(group: String, userId: Int)(implicit ec: ExecutionContext): Future[Option[ErrorCode]] = {
+    ws.url(apiBase + "/api/groups/" + group + "/members/" + userId)
+      .authentified
+      .delete()
+      .map(r => {
+        try {
+          if (r.status == 400)
+            Some(ErrorCode(r.json.as[RequestError].errorCode, "group_remove_user"))
+          else None // No error, done
+        } catch {
+          case e: Exception =>
+            e.printStackTrace()
+            Some(GeneralErrorCodes.UnknownError)
         }
       })
   }

@@ -19,14 +19,17 @@ object GeneralErrorCodes {
     def unapply(arg: RequestError): Option[Int] = Some(arg.errorCode)
   }
 
-  class ErrorCode(errorCode: Int, val endpoint: String) extends RequestError(errorCode)
+  class ErrorCode(errorCode: Int, val endpoints: String*) extends RequestError(errorCode)
 
   class GeneralErrorCode(code: Int) extends ErrorCode(code, GeneralErrorCodeSelector)
 
   object ErrorCode {
-    private val errors = List(UnknownError, MissingData, UnknownApp, InvalidAppSecret, InvalidCaptcha)
+    private val errors = List(UnknownError, MissingData, UnknownApp, InvalidAppSecret, InvalidCaptcha, InvalidTicket, GroupNotFound, MissingPermission)
 
-    private val register: Map[String, Map[Int, ErrorCode]] = errors.groupBy(_.endpoint).mapValues(_.map(e => (e.errorCode, e)).toMap)
+    private val register: Map[String, Map[Int, ErrorCode]] = errors
+      .flatMap(err => err.endpoints.map(endpoint => (endpoint, err)))
+      .groupBy(_._1)
+      .mapValues(_.map(e => (e._2.errorCode, e._2)).toMap)
 
     def apply(code: Int, endpoint: String): ErrorCode = {
       val map = register(endpoint) ++ register(GeneralErrorCodeSelector)
@@ -58,6 +61,11 @@ object GeneralErrorCodes {
   case object InvalidCaptcha extends GeneralErrorCode(104)
 
   case object InvalidTicket extends ErrorCode(201, "get_ticket")
+
+  case object GroupNotFound extends ErrorCode(201, "group_remove_user", "group_add_user")
+
+  case object MissingPermission extends ErrorCode(202, "group_remove_user", "group_add_user")
+
 
   implicit val errorFormat: Format[RequestError] = Json.format[RequestError]
 }
