@@ -2,6 +2,7 @@ package ch.japanimpact.auth.api
 
 import ch.japanimpact.auth.api.constants.GeneralErrorCodes
 import ch.japanimpact.auth.api.constants.GeneralErrorCodes.{ErrorCode, RequestError}
+import play.api.Configuration
 import play.api.libs.json.{Json, Reads}
 import play.api.libs.ws._
 
@@ -114,5 +115,15 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
       .authentified
       .get()
       .map(mapResponseToEither[LoginSuccess]("*"))
+  }
+}
+
+object AuthApi {
+  def apply(client: WSClient)(implicit executionContext: ExecutionContext, config: Configuration): AuthApi = {
+    val clientId: String = config.get[String]("jiauth.clientId")
+    val clientSecret: String = config.get[String]("jiauth.clientSecret")
+    val apiRoot: String = config.get[String]("jiauth.baseUrl")
+
+    new AuthApi(client, apiRoot, clientId, clientSecret)
   }
 }
