@@ -1,9 +1,8 @@
 package ch.japanimpact.auth.api
 
-import ch.japanimpact.auth.api.AuthApi.{AppTicketRequest, AppTicketResponse}
 import ch.japanimpact.auth.api.constants.GeneralErrorCodes
 import ch.japanimpact.auth.api.constants.GeneralErrorCodes.{ErrorCode, RequestError}
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{Json, Reads}
 import play.api.libs.ws._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -12,7 +11,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * @author Louis Vialar
   */
-class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, val apiClientSecret: String) {
+class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, val apiClientSecret: String)(implicit ec: ExecutionContext) {
 
   private val reg = "^[0-9a-zA-Z_=-]{60,120}$".r
 
@@ -26,88 +25,94 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
     )
   }
 
-  def getAppTicket(ticket: String)(implicit ec: ExecutionContext): Future[Either[AppTicketResponse, ErrorCode]] = {
+  private def mapResponse[ReturnType](endpoint: String, produceSuccess: WSResponse => ReturnType, produceError: ErrorCode => ReturnType)(r: WSResponse) = {
+    try {
+      if (r.status != 200)
+        produceError(ErrorCode(r.json.as[RequestError].errorCode, endpoint))
+      else produceSuccess(r)
+    } catch {
+      case e: Exception =>
+        e.printStackTrace()
+        produceError(GeneralErrorCodes.UnknownError)
+    }
+  }
+
+  private def mapResponseToEither[SuccessType](endpoint: String)(implicit format: Reads[SuccessType]) = {
+    mapResponse(endpoint, r => Left(r.json.as[SuccessType]), e => Right(e))
+  }
+
+  /**
+    * Get the content of a given ticket
+    *
+    * @param ticket the ticket to retrieve
+    * @return either the ticket content or an error
+    *         if successful, an [[AppTicketResponse]] is returned.
+    *         if the credentials are invalid, a [[GeneralErrorCodes.InvalidAppSecret]] error is returned
+    *         if the ticket doesn't exist, a [[GeneralErrorCodes.InvalidTicket]] error is returned
+    *         a [[GeneralErrorCodes.UnknownError]] might be produced if something happens
+    */
+  def getAppTicket(ticket: String): Future[Either[AppTicketResponse, ErrorCode]] = {
     if (!isValidTicket(ticket))
       throw new IllegalArgumentException("invalid ticket")
 
     ws.url(apiBase + "/api/ticket/" + ticket)
       .authentified
       .get()
-      .map(r => {
-        try {
-          if (r.status != 200)
-            Right(ErrorCode(r.json.as[RequestError].errorCode, "get_ticket"))
-          else Left(r.json.as[AppTicketResponse])
-        } catch {
-          case e: Exception =>
-            e.printStackTrace()
-            Right(GeneralErrorCodes.UnknownError)
-        }
-      })
+      .map(mapResponseToEither("get_ticket"))
   }
 
-  def addUserToGroup(group: String, userId: Int)(implicit ec: ExecutionContext): Future[Option[ErrorCode]] = {
+  /**
+    * Add an user to a group. The group must be a group in which the app owner has a write access.
+    *
+    * @param group  the identifier of the group
+    * @param userId the user to add to the group
+    * @return an option, holding nothing if everything went fine, or an error otherwise.
+    *         if the credentials are invalid, a [[GeneralErrorCodes.InvalidAppSecret]] error is returned
+    *         if the group doesn't exist, a [[GeneralErrorCodes.GroupNotFound]] error is returned
+    *         if you can't add members to the group, a [[GeneralErrorCodes.MissingPermission]] error is returned
+    *         a [[GeneralErrorCodes.UnknownError]] might be produced if something happens
+    */
+  def addUserToGroup(group: String, userId: Int): Future[Option[ErrorCode]] = {
     ws.url(apiBase + "/api/groups/" + group + "/members")
       .authentified
       .post(Json.toJson("userId" -> userId))
-      .map(r => {
-        try {
-          if (r.status == 400)
-            Some(ErrorCode(r.json.as[RequestError].errorCode, "group_add_user"))
-          else None // No error, done
-        } catch {
-          case e: Exception =>
-            e.printStackTrace()
-            Some(GeneralErrorCodes.UnknownError)
-        }
-      })
+      .map(mapResponse("group_add_user", _ => None, e => Some(e)))
   }
 
-  def removeUserFromGroup(group: String, userId: Int)(implicit ec: ExecutionContext): Future[Option[ErrorCode]] = {
+  /**
+    * Remove an user from a group. The group must be a group in which the app owner has a write access. The app owner
+    * must also have the permissions to remove this user. (If the user is the group owner, this operation will always
+    * fail. Same thing if the user is a group admin but the app owner isn't)
+    *
+    * @param group  the identifier of the group
+    * @param userId the user to add to the group
+    * @return an option, holding nothing if everything went fine, or an error otherwise.
+    *         if the credentials are invalid, a [[GeneralErrorCodes.InvalidAppSecret]] error is returned
+    *         if the group doesn't exist, a [[GeneralErrorCodes.GroupNotFound]] error is returned
+    *         if the user doesn't exist or is not a member of the group, a [[GeneralErrorCodes.UserNotFound]] error is returned
+    *         if you don't have the permission to remove this user, a [[GeneralErrorCodes.MissingPermission]] error is returned
+    *         a [[GeneralErrorCodes.UnknownError]] might be produced if something happens
+    */
+  def removeUserFromGroup(group: String, userId: Int): Future[Option[ErrorCode]] = {
     ws.url(apiBase + "/api/groups/" + group + "/members/" + userId)
       .authentified
       .delete()
-      .map(r => {
-        try {
-          if (r.status == 400)
-            Some(ErrorCode(r.json.as[RequestError].errorCode, "group_remove_user"))
-          else None // No error, done
-        } catch {
-          case e: Exception =>
-            e.printStackTrace()
-            Some(GeneralErrorCodes.UnknownError)
-        }
-      })
+      .map(mapResponse("group_add_user", _ => None, e => Some(e)))
   }
-}
-
-object AuthApi {
-
-
-  implicit val requestMapper: Format[AppTicketRequest] = Json.format[AppTicketRequest]
-  implicit val responseMapper: Format[AppTicketResponse] = Json.format[AppTicketResponse]
-
-
-  class ApiRequest(val endpoint: String, val method: String)
 
   /**
-    * The format of the request sent by the client
+    * Login as an app.
     *
-    * @param ticket       the ticket the CAS previously sent to the user
-    * @param clientId     the clientId of the requesting app
-    * @param clientSecret the clientSecret of the requesting app
+    * @param appClientId the app you want to login against
+    * @return a ticket that can be used to login on the given app, or an error
+    *         if the credentials are invalid, a [[GeneralErrorCodes.InvalidAppSecret]] error is returned
+    *         if the requested appClientId matches no app, a [[GeneralErrorCodes.UnknownApp]] error is returned
+    *         a [[GeneralErrorCodes.UnknownError]] might be produced if something happens
     */
-  case class AppTicketRequest(ticket: String, clientId: String, clientSecret: String) extends ApiRequest("api/get_ticket", "POST")
-
-
-  /**
-    * The object returned when the ticket is found
-    *
-    * @param userId     the CAS id of user the ticket was generated for
-    * @param userEmail  the email of the user the ticket was generated for
-    * @param ticketType the type of ticket
-    * @param groups     the set of groups (exposed to the app) the user is part of
-    */
-  case class AppTicketResponse(userId: Int, userEmail: String, ticketType: TicketType, groups: Set[String])
-
+  def login(appClientId: String): Future[Either[LoginSuccess, ErrorCode]] = {
+    ws.url(apiBase + "/api/app_login/" + appClientId)
+      .authentified
+      .get()
+      .map(mapResponseToEither("*"))
+  }
 }
