@@ -37,8 +37,8 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
     }
   }
 
-  private def mapResponseToEither[SuccessType](endpoint: String)(implicit format: Reads[SuccessType]) = {
-    mapResponse(endpoint, r => Left(r.json.as[SuccessType]), e => Right(e))
+  private def mapResponseToEither[SuccessType](endpoint: String)(implicit format: Reads[SuccessType]): WSResponse => Either[SuccessType, ErrorCode] = {
+    mapResponse[Either[SuccessType, ErrorCode]](endpoint, r => Left(r.json.as[SuccessType]), e => Right(e))
   }
 
   /**
@@ -58,7 +58,7 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
     ws.url(apiBase + "/api/ticket/" + ticket)
       .authentified
       .get()
-      .map(mapResponseToEither("get_ticket"))
+      .map(mapResponseToEither[AppTicketResponse]("get_ticket"))
   }
 
   /**
@@ -113,6 +113,6 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
     ws.url(apiBase + "/api/app_login/" + appClientId)
       .authentified
       .get()
-      .map(mapResponseToEither("*"))
+      .map(mapResponseToEither[LoginSuccess]("*"))
   }
 }
