@@ -10,6 +10,21 @@ You need to compile and distribute it locally to be able to use it. It's a simpl
     sbt packageBin
     sbt publishLocal
     
+
+## Use in a PHP application
+
+Just require the class and create an instance of it.
+
+    require 'JIAuth.class.php';
+    
+    $baseUrl = "https://auth.japan-impact.ch/";
+    $clientId = "client_id";
+    $clientSecret = "client_secret";
+    
+    $auth = new JIAuth($baseUrl, $clientId, $clientSecret);
+    
+The methods are pretty easy to use.
+
 ## Use in a play application
 
 You will want to have a module in your app (see play documentation). In this app, you'll need a method to
