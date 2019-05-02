@@ -64,7 +64,9 @@ object GeneralErrorCodes {
 
   case object GroupNotFound extends ErrorCode(201, "group_remove_user", "group_add_user")
 
-  case object MissingPermission extends ErrorCode(202, "group_remove_user", "group_add_user")
+  case object UserNotFound extends ErrorCode(202, "group_remove_user", "group_add_user")
+
+  case object MissingPermission extends ErrorCode(203, "group_remove_user", "group_add_user")
 
 
   implicit val errorFormat: Format[RequestError] = Json.format[RequestError]
