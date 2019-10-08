@@ -23,6 +23,8 @@ define('T_PASSWORD_RESET', 'T_PASSWORD_RESET');
 define('T_EXPLICIT_GRANT', 'T_EXPLICIT_GRANT');
 define('T_APP', 'T_APP');
 
+define('VALID_LOGINS', array(T_LOGIN, T_EMAIL_CONFIRM, T_PASSWORD_RESET, T_EXPLICIT_GRANT, T_APP));
+
 
 class JIAuth {
 	private $appBaseUrl;

@@ -63,6 +63,22 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
   }
 
   /**
+    * Gets the profile of a user. If the user didn't migrate his account to add his profile information, this will not return.
+    *
+    * @param userId the id of the user to return
+    * @return either the profile or an error
+    *         if the credentials are invalid, a [[GeneralErrorCodes.InvalidAppSecret]] error is returned
+    *         if the user doesn't exist, a [[GeneralErrorCodes.UserNotFound]] error is returned
+    *         a [[GeneralErrorCodes.UnknownError]] might be produced if something happens
+    */
+  def getAppTicket(userId: Int): Future[Either[UserProfile, ErrorCode]] = {
+    ws.url(apiBase + "/api/user/" + userId)
+      .authentified
+      .get()
+      .map(mapResponseToEither[UserProfile]("get_ticket"))
+  }
+
+  /**
     * Add an user to a group. The group must be a group in which the app owner has a write access.
     *
     * @param group  the identifier of the group
