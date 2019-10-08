@@ -6,12 +6,13 @@ import play.api.libs.json.{Format, Json}
   * @author Louis Vialar
   */
 package object api {
+  implicit val addressMapper: Format[UserAddress] = Json.format[UserAddress]
+  implicit val detailsMapper: Format[UserDetails] = Json.format[UserDetails]
+  implicit val profileMapper: Format[UserProfile] = Json.format[UserProfile]
+
   implicit val requestMapper: Format[AppTicketRequest] = Json.format[AppTicketRequest]
   implicit val responseMapper: Format[AppTicketResponse] = Json.format[AppTicketResponse]
   implicit val successMapper: Format[LoginSuccess] = Json.format[LoginSuccess]
-  implicit val addressMapper: Format[UserAddress] = Json.format[UserAddress]
-  implicit val profileMapper: Format[UserProfile] = Json.format[UserProfile]
-
   /**
     * The format of the request sent by the client
     *
@@ -30,11 +31,13 @@ package object api {
     * @param ticketType the type of ticket
     * @param groups     the set of groups (exposed to the app) the user is part of
     */
-  case class AppTicketResponse(userId: Int, userEmail: String, ticketType: TicketType, groups: Set[String])
+  case class AppTicketResponse(@deprecated userId: Int, @deprecated userEmail: String, ticketType: TicketType, groups: Set[String], user: UserProfile)
 
   case class UserAddress(address: String, addressComplement: Option[String], postCode: String, region: String, country: String)
 
-  case class UserProfile(id: Int, email: String, firstName: String, lastName: String, phoneNumber: Option[String], address: UserAddress)
+  case class UserDetails(firstName: String, lastName: String, phoneNumber: Option[String])
+
+  case class UserProfile(id: Int, email: String, details: Option[UserDetails], address: Option[UserAddress])
 
   /**
     * The object returned when the login is successful

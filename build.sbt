@@ -1,7 +1,7 @@
 name := "JIAuthFramework"
 organization := "ch.japanimpact"
 
-version := "0.1-SNAPSHOT"
+version := "0.2-SNAPSHOT"
 
 publishArtifact in (Compile, packageDoc) := false
 publishArtifact in (Compile, packageSrc) := false
