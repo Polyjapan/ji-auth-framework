@@ -33,7 +33,7 @@ package object api {
     */
   case class AppTicketResponse(@deprecated userId: Int, @deprecated userEmail: String, ticketType: TicketType, groups: Set[String], user: UserProfile)
 
-  case class UserAddress(address: String, addressComplement: Option[String], postCode: String, region: String, country: String)
+  case class UserAddress(address: String, addressComplement: Option[String], postCode: String, city: String, country: String)
 
   case class UserDetails(firstName: String, lastName: String, phoneNumber: Option[String])
 
