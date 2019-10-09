@@ -71,11 +71,41 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
     *         if the user doesn't exist, a [[GeneralErrorCodes.UserNotFound]] error is returned
     *         a [[GeneralErrorCodes.UnknownError]] might be produced if something happens
     */
-  def getAppTicket(userId: Int): Future[Either[UserProfile, ErrorCode]] = {
+  def getUserProfile(userId: Int): Future[Either[UserProfile, ErrorCode]] = {
     ws.url(apiBase + "/api/user/" + userId)
       .authentified
       .get()
       .map(mapResponseToEither[UserProfile]("get_ticket"))
+  }
+
+  /**
+    * Gets the profile of a user. If the user didn't migrate his account to add his profile information, this will not return.
+    *
+    * @param userIds the set of ids of the users to return
+    * @return either the profile or an error
+    *         if the credentials are invalid, a [[GeneralErrorCodes.InvalidAppSecret]] error is returned
+    *         if the user doesn't exist, a [[GeneralErrorCodes.UserNotFound]] error is returned
+    *         a [[GeneralErrorCodes.UnknownError]] might be produced if something happens
+    */
+  def getUserProfiles(userIds: Set[Int]): Future[Either[Map[Int, UserProfile], ErrorCode]] = {
+    if (userIds.size > 300) {
+      val (left, right) = userIds.splitAt(300) // Split the request
+
+      val l = getUserProfiles(left)
+      val r = getUserProfiles(right)
+
+      Future.reduceLeft(List(l, r)) {
+        case (Left(lMap), Left(rMap)) => Left(lMap ++ rMap)
+        case (Right(lErr), _) => Right(lErr)
+        case (_, Right(rErr)) => Right(rErr)
+      }
+    } else {
+      ws.url(apiBase + "/api/users/" + userIds.mkString(","))
+        .authentified
+        .get()
+        .map(mapResponseToEither[Map[String, UserProfile]]("get_ticket"))
+        .map(_.left.map { map => map.map(pair => (pair._1.toInt, pair._2))})
+    }
   }
 
   /**
