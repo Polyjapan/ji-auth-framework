@@ -39,10 +39,31 @@ class JIAuth {
 
 	/**
 	  * Get an app ticket
-	  * @return an array with (userId -> int, userEmail -> string, ticketType -> string, groups -> array) or with "errorCode"
+	  * @return an array with (userId -> int, userEmail -> string, ticketType -> string, groups -> array,
+	  *     user -> array(
+	  *        id -> int,
+	  *        email -> string,
+	  *        details -> array(firstName -> string, lastName -> string, phoneNumber -> nullable string),
+	  *        address -> array(address > string, addressComplement -> nullable string, postCode -> string, region -> string, country -> string)
+	  *     ))
+	  * or with "errorCode"
 	  */
 	public function get_app_ticket($ticket) {
 		return $this->request("api/ticket/" . $ticket, "GET");
+	}
+
+	/**
+    	  * Get an user profile
+    	  * @return an array (
+    	  *        id -> int,
+    	  *        email -> string,
+    	  *        details -> array(firstName -> string, lastName -> string, phoneNumber -> nullable string),
+    	  *        address -> array(address > string, addressComplement -> nullable string, postCode -> string, region -> string, country -> string)
+    	  *     )
+    	  * or with "errorCode"
+    	  */
+	public function get_user_info($userId) {
+		return $this->request("api/user/" . $userId, "GET");
 	}
 
 	public function add_user_to_group($group, $userId) {
