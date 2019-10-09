@@ -37,7 +37,7 @@ package object api {
 
   case class UserDetails(firstName: String, lastName: String, phoneNumber: Option[String])
 
-  case class UserProfile(id: Int, email: String, details: Option[UserDetails], address: Option[UserAddress])
+  case class UserProfile(id: Int, email: String, details: UserDetails, address: Option[UserAddress])
 
   /**
     * The object returned when the login is successful
