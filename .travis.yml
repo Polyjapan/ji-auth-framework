@@ -3,6 +3,7 @@ scala:
 - 2.12.2
 script:
 - sbt packageBin
+- pwd
 
 deploy:
   provider: releases
