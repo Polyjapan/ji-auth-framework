@@ -99,12 +99,14 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
         case (Right(lErr), _) => Right(lErr)
         case (_, Right(rErr)) => Right(rErr)
       }
-    } else {
+    } else if (userIds.nonEmpty) {
       ws.url(apiBase + "/api/users/" + userIds.mkString(","))
         .authentified
         .get()
         .map(mapResponseToEither[Map[String, UserProfile]]("get_ticket"))
         .map(_.left.map { map => map.map(pair => (pair._1.toInt, pair._2))})
+    } else {
+      Future.successful(Left(Map()))
     }
   }
 
