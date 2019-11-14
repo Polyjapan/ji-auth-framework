@@ -7,6 +7,7 @@ import play.api.libs.json.{Json, Reads}
 import play.api.libs.ws._
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 
 /**
@@ -29,7 +30,7 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
   private def mapResponse[ReturnType](endpoint: String, produceSuccess: WSResponse => ReturnType, produceError: ErrorCode => ReturnType)(r: WSResponse) = {
     try {
       if (r.status != 200)
-        produceError(ErrorCode(r.json.as[RequestError].errorCode, endpoint))
+        produceError(Try { ErrorCode(r.json.as[RequestError].errorCode, endpoint) }.getOrElse { GeneralErrorCodes.UnknownError } )
       else produceSuccess(r)
     } catch {
       case e: Exception =>
