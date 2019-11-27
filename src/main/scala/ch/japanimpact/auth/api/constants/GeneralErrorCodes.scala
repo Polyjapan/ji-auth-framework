@@ -29,7 +29,7 @@ object GeneralErrorCodes {
     private val register: Map[String, Map[Int, ErrorCode]] = errors
       .flatMap(err => err.endpoints.map(endpoint => (endpoint, err)))
       .groupBy(_._1)
-      .mapValues(_.map(e => (e._2.errorCode, e._2)).toMap)
+      .mapValues(_.map(e => (e._2.errorCode, e._2)).toMap).toMap
 
     def apply(code: Int, endpoint: String): ErrorCode = {
       val map = register(endpoint) ++ register(GeneralErrorCodeSelector)
