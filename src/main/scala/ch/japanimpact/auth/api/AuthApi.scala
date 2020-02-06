@@ -64,6 +64,22 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
   }
 
   /**
+    * Search users in Auth
+    *
+    * @param query the query string to look for
+    * @return the users
+    */
+  def searchUser(query: String): Future[List[UserProfile]] = {
+    if (query.length < 3)
+      throw new IllegalArgumentException("invalid ticket")
+
+    ws.url(apiBase + "/api/user/search/" + query)
+      .authentified
+      .get()
+      .map(r => r.json.as[List[UserProfile]])
+  }
+
+  /**
     * Gets the profile of a user. If the user didn't migrate his account to add his profile information, this will not return.
     *
     * @param userId the id of the user to return
