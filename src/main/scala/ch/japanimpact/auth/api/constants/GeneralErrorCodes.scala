@@ -62,11 +62,11 @@ object GeneralErrorCodes {
 
   case object InvalidTicket extends ErrorCode(201, "get_ticket")
 
-  case object GroupNotFound extends ErrorCode(201, "group_remove_user", "group_add_user")
+  case object GroupNotFound extends ErrorCode(201, "group_remove_user", "group_add_user", "group_get_users")
 
-  case object UserNotFound extends ErrorCode(202, "group_remove_user", "group_add_user")
+  case object UserNotFound extends ErrorCode(202, "group_remove_user", "group_add_user", "group_get_users")
 
-  case object MissingPermission extends ErrorCode(203, "group_remove_user", "group_add_user")
+  case object MissingPermission extends ErrorCode(203, "group_remove_user", "group_add_user", "group_get_users")
 
 
   implicit val errorFormat: Format[RequestError] = Json.format[RequestError]
