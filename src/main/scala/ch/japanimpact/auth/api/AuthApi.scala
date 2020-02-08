@@ -76,7 +76,9 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
     ws.url(apiBase + "/api/user/search/" + query)
       .authentified
       .get()
-      .map(r => r.json.as[List[UserProfile]])
+      .map(r => {
+        r.json.as[List[UserProfile]]
+      })
   }
 
   /**
@@ -143,6 +145,22 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
       .authentified
       .post(Json.toJson("userId" -> userId))
       .map(mapResponse("group_add_user", _ => None, e => Some(e)))
+  }
+  /**
+    * Get all the users of a group. The group must be a group in which the app owner has a read access.
+    *
+    * @param group  the identifier of the group
+    * @return an option, holding nothing if everything went fine, or an error otherwise.
+    *         if the credentials are invalid, a [[GeneralErrorCodes.InvalidAppSecret]] error is returned
+    *         if the group doesn't exist, a [[GeneralErrorCodes.GroupNotFound]] error is returned
+    *         if you can't read members of the group, a [[GeneralErrorCodes.MissingPermission]] error is returned
+    *         a [[GeneralErrorCodes.UnknownError]] might be produced if something happens
+    */
+  def getGroupMembers(group: String): Future[Either[List[UserProfile], ErrorCode]] = {
+    ws.url(apiBase + "/api/groups/" + group + "/members")
+      .authentified
+      .get
+      .map(mapResponseToEither[List[UserProfile]]("group_get_users"))
   }
 
   /**
