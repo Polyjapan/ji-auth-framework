@@ -5,7 +5,7 @@ import play.api.libs.json._
 /**
   * @author Louis Vialar
   */
-
+@deprecated
 trait TicketType {
   /**
     * A boolean indicating whether this ticket represents a successful login and can be used to authorize an user
@@ -13,6 +13,7 @@ trait TicketType {
   val isValidLogin: Boolean = false
 }
 
+@deprecated
 object TicketType {
   def apply(s: String): TicketType = s match {
     case "T_LOGIN" => LoginTicket
