@@ -189,9 +189,8 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
       .map(mapResponse("group_add_user", _ => None, e => Some(e)))
   }
 
-  def refreshToken(token: String): Future[Either[TokenResponse, ErrorCode]] = {
-    ws.url(apiBase + "/api/refresh")
-      .asUserWithToken(token)
+  def refreshToken(refreshToken: String): Future[Either[TokenResponse, ErrorCode]] = {
+    ws.url(apiBase + "/api/refresh/" + refreshToken)
       .get()
       .map(mapResponseToEither[TokenResponse](""))
   }
