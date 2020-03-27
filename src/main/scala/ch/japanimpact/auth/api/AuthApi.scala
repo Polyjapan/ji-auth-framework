@@ -1,8 +1,11 @@
 package ch.japanimpact.auth.api
 
+import java.security.Security
+
 import ch.japanimpact.auth.api.constants.GeneralErrorCodes
 import ch.japanimpact.auth.api.constants.GeneralErrorCodes.{ErrorCode, RequestError}
 import javax.inject.{Inject, Singleton}
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import play.api.Configuration
 import play.api.libs.json.{Json, Reads}
 import play.api.libs.ws._
@@ -199,6 +202,10 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
 object AuthApi {
   @Inject()
   def apply(client: WSClient)(implicit executionContext: ExecutionContext, config: Configuration): AuthApi = {
+    if (Security.getProvider("BC") == null) {
+      Security.addProvider(new BouncyCastleProvider())
+    }
+
     val clientId: String = config.get[String]("jiauth.clientId")
     val clientSecret: String = config.get[String]("jiauth.clientSecret")
     val apiRoot: String = config.get[String]("jiauth.baseUrl")
