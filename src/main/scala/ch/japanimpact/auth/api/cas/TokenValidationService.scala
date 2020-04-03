@@ -1,11 +1,12 @@
-package ch.japanimpact.auth.api
+package ch.japanimpact.auth.api.cas
 
+import ch.japanimpact.auth.api.AuthorizedUser
 import javax.inject.{Inject, Singleton}
-import pdi.jwt.{JwtAlgorithm, JwtJson, JwtOptions}
+import pdi.jwt.{JwtAlgorithm, JwtJson}
 import play.api.Configuration
 import play.api.libs.json.Json
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import scala.io.Source
 import scala.util.Try
 

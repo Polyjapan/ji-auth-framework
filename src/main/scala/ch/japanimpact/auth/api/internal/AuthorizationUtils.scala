@@ -1,7 +1,8 @@
-package ch.japanimpact.auth.api
+package ch.japanimpact.auth.api.internal
 
+import ch.japanimpact.auth.api.AuthorizedUser
 import javax.inject.Inject
-import play.api.mvc.Results._
+import play.api.mvc.Results.{Forbidden, Unauthorized}
 import play.api.mvc._
 
 import scala.concurrent.{ExecutionContext, Future}

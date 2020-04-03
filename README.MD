@@ -28,11 +28,11 @@ The methods are pretty easy to use.
 ## Use in a play application
 
 You will want to have a module in your app (see play documentation). In this app, you'll need a method to
-provide the authClient.
-
+provide the authClient. Similar for other modules.
     
     @Provides
     def provideAuthClient(ws: WSClient)(implicit ec: ExecutionContext, config: Configuration): AuthApi = AuthApi(ws)
+   
     
 This version reads values from the config file
 
@@ -40,6 +40,13 @@ This version reads values from the config file
       clientId = ""
       clientSecret = ""
       baseUrl = ""
+    }
+    
+    cas {
+        hostname = "auth.japan-impact.ch" // the hostname (and port) of the CAS server
+        uri = "/cas/v2" // the base path of CAS on the given hostname
+        service = <define here> // the hostname of the current service
+        secure = true // set to false to disable use of HTTPS
     }
 
 You can also provide these values directly

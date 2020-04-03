@@ -18,7 +18,7 @@ import scala.util.Try
   * @author Louis Vialar
   */
 @Singleton
-class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, val apiClientSecret: String)(implicit ec: ExecutionContext) {
+class AuthApi(val ws: WSClient, val apiBase: String, val apiClientSecret: String)(implicit ec: ExecutionContext) extends ApiMapper {
 
   private val reg = "^[0-9a-zA-Z_=-]{60,120}$".r
 
@@ -28,7 +28,6 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
 
   implicit class AuthWSRequest(rq: WSRequest) {
     def asCurrentApp: WSRequest = rq.addHttpHeaders(
-      "X-Client-Id" -> apiClientId,
       "X-Client-Secret" -> apiClientSecret,
     )
 
@@ -36,23 +35,6 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
       "Authorization" -> ("Bearer " + token)
     )
   }
-
-  private def mapResponse[ReturnType](endpoint: String, produceSuccess: WSResponse => ReturnType, produceError: ErrorCode => ReturnType)(r: WSResponse) = {
-    try {
-      if (r.status != 200)
-        produceError(Try { ErrorCode(r.json.as[RequestError].errorCode, endpoint) }.getOrElse { GeneralErrorCodes.UnknownError } )
-      else produceSuccess(r)
-    } catch {
-      case e: Exception =>
-        e.printStackTrace()
-        produceError(GeneralErrorCodes.UnknownError)
-    }
-  }
-
-  private def mapResponseToEither[SuccessType](endpoint: String)(implicit format: Reads[SuccessType]): WSResponse => Either[SuccessType, ErrorCode] = {
-    mapResponse[Either[SuccessType, ErrorCode]](endpoint, r => Left(r.json.as[SuccessType]), e => Right(e))
-  }
-
 
   /**
     * Search users in Auth
@@ -191,25 +173,14 @@ class AuthApi(val ws: WSClient, val apiBase: String, val apiClientId: String, va
       .delete()
       .map(mapResponse("group_add_user", _ => None, e => Some(e)))
   }
-
-  def refreshToken(refreshToken: String): Future[Either[TokenResponse, ErrorCode]] = {
-    ws.url(apiBase + "/api/refresh/" + refreshToken)
-      .get()
-      .map(mapResponseToEither[TokenResponse](""))
-  }
 }
 
 object AuthApi {
   @Inject()
   def apply(client: WSClient)(implicit executionContext: ExecutionContext, config: Configuration): AuthApi = {
-    if (Security.getProvider("BC") == null) {
-      Security.addProvider(new BouncyCastleProvider())
-    }
-
-    val clientId: String = config.get[String]("jiauth.clientId")
     val clientSecret: String = config.get[String]("jiauth.clientSecret")
     val apiRoot: String = config.get[String]("jiauth.baseUrl")
 
-    new AuthApi(client, apiRoot, clientId, clientSecret)
+    new AuthApi(client, apiRoot, clientSecret)
   }
 }
