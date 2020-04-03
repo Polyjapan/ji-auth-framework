@@ -1,6 +1,6 @@
 package ch.japanimpact.auth.api.cas
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import play.api.Configuration
 
 /**
@@ -10,13 +10,24 @@ import play.api.Configuration
   * @param service (cas.service) - the domain of this service on CAS
   * @param protocol (cas.secure) - default true - set to false to use http instead of https
   */
+@Singleton()
 case class CasConfiguration(host: String, url: String, service: String, protocol: String = "https") {
+  /* Injection magic */
+  def this(config: CasConfiguration) = {
+    this(config.host, config.url, config.service, config.protocol)
+  }
+
+  @Inject()
+  def this(config: Configuration) = {
+    this(CasConfiguration.apply(config))
+  }
+  /* End injection magic */
+
   def path(endpoint: String) =
     s"$protocol://$host/$url/$endpoint"
 }
 
 object CasConfiguration {
-  @Inject()
   def apply(config: Configuration): CasConfiguration = {
 
     val hostname = config.getOptional[String]("cas.hostname").getOrElse("auth.japan-impact.ch")
@@ -24,6 +35,6 @@ object CasConfiguration {
     val service = config.get[String]("cas.service")
     val protocol = if (config.getOptional[Boolean]("cas.secure").getOrElse(true)) "https" else "http"
 
-    CasConfiguration(hostname, url, service, protocol)
+    new CasConfiguration(hostname, url, service, protocol)
   }
 }

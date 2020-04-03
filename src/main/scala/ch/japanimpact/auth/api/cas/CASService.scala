@@ -97,14 +97,3 @@ class CASService @Inject()(val ws: WSClient, val config: CasConfiguration)(impli
       }))
   }
 }
-
-object CASService {
-  @Inject()
-  def apply(config: CasConfiguration, ws: WSClient)(implicit ec: ExecutionContext): CASService = {
-    new CASService(ws, config)
-  }
-}
-
-
-
-
