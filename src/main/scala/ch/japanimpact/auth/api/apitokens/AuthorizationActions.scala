@@ -46,13 +46,13 @@ class AuthorizationActions @Inject()(val parser: BodyParsers.Default, jwt: APITo
   /**
     * Create an action that ensures that a valid token is present and that it contains specific scope(s)
     */
-  def apply(requiredScopes: String*) = new AuthorizationActionBuilder(Set(requiredScopes))
+  def apply(requiredScopes: String*) = new AuthorizationActionBuilder(Set(requiredScopes:_*))
 
   /**
     * Create an action that ensures that a valid token is present, that it contains specific scope(s), and that it
     * matches a condition regarding its principal (i.e. bot only)
     */
-  def apply(principalFilter: PrincipalFilter, requiredScopes: String*) = new AuthorizationActionBuilder(Set(requiredScopes), principalFilter)
+  def apply(principalFilter: PrincipalFilter, requiredScopes: String*) = new AuthorizationActionBuilder(Set(requiredScopes:_*), principalFilter)
 
   /**
     * Create an action that ensures that a valid token is present and that its principal matches a condition

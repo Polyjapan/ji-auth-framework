@@ -1,21 +1,24 @@
 package ch.japanimpact.auth.api.apitokens
 
+import java.security.Security
 import java.time.Clock
 
-import ch.japanimpact.auth.api.{AuthorizedUser, PublicKeyLoader}
+import ch.japanimpact.auth.api.PublicKeyLoader
 import javax.inject.{Inject, Singleton}
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import pdi.jwt.exceptions.JwtValidationException
 import pdi.jwt.{JwtAlgorithm, JwtJson, JwtOptions}
 import play.api.Configuration
 import play.api.libs.json.Json
 
 import scala.concurrent.ExecutionContext
-import scala.io.Source
-import scala.util.{Failure, Try}
+import scala.util.Try
 
 @Singleton
 class APITokensValidationService @Inject()(implicit executionContext: ExecutionContext, config: Configuration, clock: Clock, pk: PublicKeyLoader) {
-  type SessionID = String
+  if (Security.getProvider("BC") == null) {
+    Security.addProvider(new BouncyCastleProvider())
+  }
 
   private lazy val audience: String = config.get[String]("jwt.audience")
   private lazy val issuer: String = config.getOptional[String]("jwt.issuer").getOrElse("auth")
