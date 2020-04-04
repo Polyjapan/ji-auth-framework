@@ -23,12 +23,12 @@ package object apitokens {
       else {
         // Check for * sub scopes
 
-        // example: for scope "uploads/staffs/add"
-        scope.split("/") // split all parts: [uploads, staffs, add]
-          .map(part => part + "/") // add a slash at the end: [uploads/, staffs/, add/]
-          .scanLeft("")(_ + _) // cumulative apply: [, uploads/, uploads/staffs/, uploads/staffs/add/]
+        // example: for scope "uploads.staffs.add"
+        scope.split("\\.") // split all parts: [uploads, staffs, add]
+          .map(part => part + ".") // add a dot at the end: [uploads., staffs., add.]
+          .scanLeft("")(_ + _) // cumulative apply: [, uploads., uploads.staffs., uploads.staffs.add/]
           .dropRight(1) // we don't care about the full path
-          .map(path => path + "*") // [*, uploads/*, uploads/staffs/*]
+          .map(path => path + "*") // [*, uploads.*, uploads.staffs.*]
           .exists(scopes) // find if one of these scopes is allowed
       }
     }
